@@ -208,7 +208,7 @@ app.controller('DashHomeCtrl', function($scope) {
 })
 
 // Ctrl For Dash
-app.controller('DashInstantCtrl', function($scope, $location, dashInstant, dashVans, maps, $http, tdispatch) {
+app.controller('DashInstantCtrl', function($scope, $location, dashInstant, dashVans, maps, $http, tdispatch, bookingGrab, bookings, misc, user, stripeForm) {
 
     var realTime = new Date();
     $('#job-date-picker').datetimepicker({
@@ -218,12 +218,12 @@ app.controller('DashInstantCtrl', function($scope, $location, dashInstant, dashV
         todayHighlight: true,
     });
 
-
     $scope.dashInstant = dashInstant;
     $scope.dashVans = dashVans;
-    //$scope.dashPorters = dashPorters;
-    //$scope.dashInstant.jobDate = new Date();
     $scope.tdispatch = tdispatch;
+    $scope.booking = bookings;
+    $scope.misc = misc;
+    $scope.stripeForm = stripeForm;
 
     // Set up autocomplete
     $scope.address = dashInstant.address;
@@ -252,18 +252,6 @@ app.controller('DashInstantCtrl', function($scope, $location, dashInstant, dashV
             }
         });
     }
-
-    /*$scope.choosePorters = function(porterQty, $event) {
-        $scope.dashInstant.porterQty = porterQty;
-        // Mark Chosen Van Box
-        $('.porter-qty').removeClass('bord-picked');
-        $.each($('.porter-qty'), function(i,v) {
-            if($(v).attr('data-porter') == porterQty) {
-                $(v).addClass('bord-picked');
-            }
-        });
-        console.log($scope.dashInstant.porterQty);
-    }*/
 
     $scope.updateMaps = function() {
         if($scope.dashInstant.address.start_location.name.formatted_address) {
@@ -302,22 +290,33 @@ app.controller('DashInstantCtrl', function($scope, $location, dashInstant, dashV
 
     // FROM BOOK BUTTON TO SERVER ROUTES (DATA IT SENDS: DASHINSTANT)
     $scope.bookInstantJob = function(){
-        // SAVES JOB TO DB
-        $http.post('/api/tdispatch-book', {data: dashInstant}, function(data) {
-            console.log(data);
-        }, function(response){
-            // DID NOT SAVE
-        });
+        if(user.cardAdded == 'added') {
+            // SAVES JOB TO DB
+            $http.post('/api/tdispatch-book', {data: dashInstant}).then(function(data){
+                console.log(data);
+                bookingGrab.displayAllRecords(null, "Quote", function(resp){
+                    $scope.bookings = resp;
+                    $scope.misc.myBookingsReady = true;
+                });
+            }, function(response){
+                // failure callback
+            });
+        } else {
+            // cant book need card
+            document.getElementById('payment-button').click();
+            $scope.stripeForm.checkCard();
+        }
     }
 
-    /*$scope.tester = function(){
+    $scope.tester = function(){
         // SAVES JOB TO DB
-        $http.post('/api/tester', {data: dashInstant}, function(data) {
+        $scope.misc.myBookingsReady = true;
+        /*$http.post('/api/tester', {data: dashInstant}, function(data) {
             console.log(data);
         }, function(response){
             // DID NOT SAVE
-        });
-    }*/
+        });*/
+    }
 
     // NO SAVE ButTON
     $scope.saveInstantjob = function(){
@@ -389,67 +388,38 @@ app.controller('DashJobCompleteCtrl', function($scope, $location, dashInstant) {
 })
 
 // Ctrl For Navigation
-app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, infoGrab, bookingGrab, bookings, email, $location) {
+app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, infoGrab, bookings, bookingGrab, bookings, email, $location, misc, stripeForm, cardDetails) {
     auth.intercept(function(response) {
         // Grab appRoute.js Action Param
         $scope.views = views;
         views.currentView = $route.current.action;
         views.currentType = $route.current.type;
         views = $scope.views;
-
+        $scope.bookings = bookings;
+        $scope.misc = misc;
+        $scope.stripeForm = stripeForm;
+        $scope.cardDetails = cardDetails;
 
         if(response.message !== 'authenticated' && views.currentType == 'dash') {
             $location.path('/login');
         } else {
             $scope.user = user;
             $scope.email = email;
-
             $scope.isCardAdded = '';
         }
     })
 
-
-
-    $scope.checkCard = function() {
-        if($scope.isCardAdded == 'added') {
-
-        } else {
-            $http.post('/api/check-card').success(function(res) {
-                console.log(res);
-                $scope.isCardAdded = res.message;
-                console.log($scope.isCardAdded);
-                $scope.cardDetails = {};
-                $scope.cardDetails.brand = res.data.brand;
-                $scope.cardDetails.last4 = res.data.last4;
-            })
-        }
-
-    }
-
-    $scope.removeCard = function() {
-        $http.post('/api/remove-card').success(function(res) {
-            if(res.success == true) {
-                $scope.isCardAdded = 'none';
+    $scope.cancelJob = function(jobPK) {
+        $http.post('/api/cancel-job', {data: jobPK}).success(function(resp) {
+            if(resp.success == true) {
+                $scope.misc.myBookingsReady = true;
             }
         })
     }
 
-    $scope.getCardForm = function() {
-        $('#payment-form').submit(function(event) {
-            event.preventDefault();
-            var $form = $(this);
-
-            Stripe.setPublishableKey('pk_test_GrFP5ytVZ9Df9ZKztAJbiOmc');
-
-            Stripe.card.createToken($form, function(status, res) {
-               // console.log(res);
-                $http.post("/api/add-card", res).success(function(status){
-                    if(status.success == true) {
-                        $scope.checkCard();
-                    }
-                });
-            });
-        })
+    $scope.checkCard = function() {
+        console.log('chek');
+        //$scope.stripeForm.checkCard();
     }
 
     $scope.contactSend = function(){
@@ -469,16 +439,12 @@ app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, in
        });
    };
 
-
-
-
-
-
     $scope.displayOneBooking = function(id){
-
         var temp = $scope.bookings.filter(function(ele){
             return ele._id == id;
         })
+        $scope.jobID = temp[0]["_id"];
+        $scope.jobPK = temp[0]["pk"];
         $scope.jobName = temp[0]["jobName"];
         $scope.pickUp = temp[0]["address"]["start_location"]["name"];
         $scope.dropOff = temp[0]["address"]["end_location"]["name"];
@@ -486,8 +452,7 @@ app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, in
         $scope.driverNote = temp[0]["driverNote"];
         $scope.vanType = temp[0]["vanType"];
         $scope.fuelPrice = temp[0]["fuelPrice"];
-
-
+        $scope.status = temp[0]["status"];
     };
 
     /*var refresh = function() {
@@ -495,16 +460,21 @@ app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, in
             $scope.bookings = response.data;
         });
     };
-
     refresh();*/
 
+    $scope.displayProfile = infoGrab.displayOneRecord(null, "User");
 
+    $scope.displayBooking = bookingGrab.displayAllRecords(null, "Quote", function(resp){
+        $scope.bookings = resp;
+    });
 
-    $scope.displayPofile = infoGrab.displayOneRecord(null, "User");
-
-    $scope.displayBooking = bookingGrab.displayAllRecords(null, "Quote", function(bookings){
-        $scope.bookings = bookings;
-        console.log($scope.bookings);
+    $scope.$watch('misc.myBookingsReady', function(newValue, oldValue) {
+        if(newValue == true) {
+            $scope.displayBooking = bookingGrab.displayAllRecords(null, "Quote", function(resp){
+                $scope.bookings = resp;
+                $scope.misc.myBookingsReady = false;
+            });
+        }
     });
 })
 
@@ -535,4 +505,20 @@ app.controller('DashDnaviCtrl', function($scope, contractor, $route, $http, $loc
     $scope.contractor = contractor;
     // Grab appRoute.js Action Param
     contractor.currentView = $route.current.action;
+})
+
+app.controller('CardAddedCtrl', function($scope, user, stripeForm) {
+    $scope.user = user;
+    $scope.stripeForm = stripeForm;
+
+    $scope.addCard = function() {
+        $scope.stripeForm.getCardForm();
+    }
+
+    $scope.removeCard = function() {
+        $scope.stripeForm.removeCard(function(resp) {
+            $scope.user.cardAdded = resp;
+        });
+    }
+
 })

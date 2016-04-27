@@ -1,5 +1,11 @@
 //======================================******START OF FACTORIES******=====================================================//
 
+app.factory('misc', function() {
+    return {
+        myBookingsReady: false
+    }
+})
+
 app.factory("views", function(){
     return {
         currentView: '',
@@ -157,7 +163,20 @@ app.factory("staff", function(){
 });
 
 app.factory("bookings", function(){
-    return{};
+    return{
+        address: {},
+        bookingKey: "",
+        distance: {},
+        driverNote: "",
+        fuelPrice: '',
+        jobDate: "",
+        jobName: "",
+        pk: "",
+        status: "",
+        suggestedPrice: '',
+        userID: "",
+        vanType: "",
+    }
 });
 
 app.factory("admin", function(){
@@ -179,6 +198,14 @@ app.factory("user", function(){
         firstname: '',
         lastname: '',
         mobile: '',
+        cardAdded: 'none'
+    };
+});
+
+app.factory("cardDetails", function(){
+    return {
+        brand: '',
+        last4: '',
     };
 });
 
@@ -203,6 +230,52 @@ app.factory("user", function(){
 //    return bookingInfo;
 //});
 
+app.service('stripeForm', function($http, user, cardDetails) {
+
+    var stripeForm = {};
+
+    stripeForm.getCardForm = function() {
+        $('#payment-form').submit(function(event) {
+            event.preventDefault();
+            var $form = $(this);
+
+            Stripe.setPublishableKey('pk_test_GrFP5ytVZ9Df9ZKztAJbiOmc');
+
+            Stripe.card.createToken($form, function(status, res) {
+               // console.log(res);
+                $http.post("/api/add-card", res).success(function(status){
+                    if(status.success == true) {
+                        stripeForm.checkCard();
+                    }
+                });
+            });
+        })
+    }
+
+    stripeForm.checkCard = function() {
+        if(user.cardAdded == 'added') {
+            //
+        } else {
+            $http.post('/api/check-card').success(function(res) {
+                user.cardAdded = res.message;
+                cardDetails.brand = res.data.brand;
+                cardDetails.last4 = res.data.last4;
+            })
+        }
+    }
+
+    stripeForm.removeCard = function(callback) {
+        $http.post('/api/remove-card').success(function(res) {
+            if(res.success == true) {
+                user.cardAdded == 'none';
+                callback(user.cardAdded);
+            }
+        })
+    }
+
+    return stripeForm;
+})
+
 
 app.service('infoGrab', function($http, user){
     var infoGrab = {};
@@ -215,30 +288,29 @@ app.service('infoGrab', function($http, user){
                  user.username = response.data.username;
                  user.mobile = response.data.mobile;
                  user.email = response.data.email;
+                 if(user.cardAdded == '') {user.cardAdded = 'none'} else {
+                     user.cardAdded = response.data.cardAdded;
+                 }
+
              }
         });
     };
-
-
     return infoGrab;
-
 });
+
 
 app.service('bookingGrab', function($http, bookings){
     var bookingGrab = {};
 
     bookingGrab.displayAllRecords = function(id, colName, callback) {
-
-
          $http.post('/api/grab-bookings', {"id":id, "colName":colName}).success(function(response) {
              bookings = response.data;
              callback(bookings);
         });
     };
-
     return bookingGrab;
-
 });
+
 
 app.service('auth', function($location, $http){
     var auth = {};

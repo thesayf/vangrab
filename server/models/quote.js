@@ -16,7 +16,12 @@ var quoteSchema = mongoose.Schema({
 	bookingKey: String,
 	recieptUrl: String,
 	status: String,
-	finalCost: String
+	finalCost: String,
+	driverPK: String,
+	driverName: String,
+	driverPhone: String,
+	driverPlate: String,
+	driverColor: String
 });
 
 // create the model for users and expose it to our app

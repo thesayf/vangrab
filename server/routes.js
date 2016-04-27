@@ -14,36 +14,28 @@ var jwt = require('jsonwebtoken');
 module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver, Staff, sendgrid) {
 
     /*app.post('/api/tester', function(req, res) {
+        obj = {};
+        obj.booking_pk = '1a79411de89087ab4ea56259';
 
-        var mongoData = {};
-        mongoData.col = Quote;
-        mongoData.fields = ["status"];
-        mongoData.newValues = ["completed"];
-        mongoData.selector = 'pk';
-        mongoData.selectorVal = 'd837bc890715558a6ca07d57';
-        mongoData.pullBack = true;
-        mongoData.query = {};
-        //console.log(decoded);
-
-        var fieldSelector = mongoData.selector;
-        var colObj = mongoData.col;
-
-        mongoData.query[mongoData.selector] = mongoData.selectorVal;
-
-        mongoData.col.findOne(mongoData.query, function(err, doc) {
-            mongoData.fields.forEach(function(v, k) {
-                doc[v] = mongoData.newValues[k];
-            });
-            doc.save(function(err) {
-                if(err) {
-                    console.log(err);
-                } else {
-                    console.log(true);
-                }
+        func.userIDByBookingPk(obj.booking_pk, function(userID) {
+            console.log(userID);
+            td.getAccessToken(userID, function(token) {
+                var sendData = {userID: userID, token: token, bookingPK: obj.booking_pk};
+                console.log(obj.booking_pk);
+                td.getDriverInfo(sendData, function(resp) {
+                    var mongoData = {};
+                    mongoData.col = Quote;
+                    mongoData.fields = ["driverPK", "driverName", "driverPhone", "driverPlate", "driverColor"];
+                    var driv = resp.bookings[0].driver;
+                    mongoData.newValues = [driv.pk, driv.name, driv.phone, driv.vehicle.plate, driv.vehicle.color];
+                    mongoData.selector = 'pk';
+                    mongoData.selectorVal = obj.booking_pk;
+                    func.updateMongoFields(mongoData, function(status) {
+                        console.log(status);
+                    })
+                });
             })
-        });
-
-
+        })
     })*/
 
 
@@ -111,13 +103,12 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
          }
     });
 
-
     //GRABS DATA FOR USERGRAB SERVICE/////////////////////////////////////////////////////////////////////////////////////////
     app.post("/api/grab-one-record", function(req, res){
         if(req.cookies["remember_me"]) {
             pp.getUserID(req.cookies["remember_me"], function(userID){
-                //var tempdb = db.getCollection. req.body.colName;
-                User.findOne({_id: userID}, function(err, record){
+                excludedFields = {password:0, accessToken:0, stripeID:0, pk:0, refreshToken:0, cardID:0};
+                User.findOne({_id: userID}, excludedFields, function(err, record){
                     //console.log(record);
                     res.json({
                         success:true,
@@ -196,10 +187,41 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
         mongoData.selectorVal = obj.booking_pk;
         mongoData.pullBack = true;
 
+        console.log(obj.new_booking_status);
+
+        /*dispatched
+        confirmed
+        on_way_to_job
+        arrived_waiting
+        passenger_on_board
+        drop
+        completed*/
+
+        if(obj.new_booking_status == 'confirmed') {
+            func.userIDByBookingPk(obj.booking_pk, function(userID) {
+                console.log(userID);
+                td.getAccessToken(userID, function(token) {
+                    var sendData = {userID: userID, token: token, bookingPK: obj.booking_pk};
+                    console.log(obj.booking_pk);
+                    td.getDriverInfo(sendData, function(resp) {
+                        var mongoData = {};
+                        mongoData.col = Quote;
+                        mongoData.fields = ["driverPK", "driverName", "driverPhone", "driverPlate", "driverColor"];
+                        var driv = resp.bookings[0].driver;
+                        mongoData.newValues = [driv.pk, driv.name, driv.phone, driv.vehicle.plate, driv.vehicle.color];
+                        mongoData.selector = 'pk';
+                        mongoData.selectorVal = obj.booking_pk;
+                        func.updateMongoFields(mongoData, function(status) {
+                            //console.log(status);
+                        })
+                    });
+                })
+            })
+        }
+
         if(obj.new_booking_status == 'incoming') {
             //func.updateMongoFields(mongoData, function(status) {
         }
-
 
         if(obj.new_booking_status == "completed") {
             func.updateMongoFields(mongoData, function(status) {
@@ -208,7 +230,6 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
                     console.log('in 0');
                     // GET ACCESS TOKEN & STRIPE ID FROM DB
                     func.userIDByBookingPk(obj.booking_pk, function(userID) {
-                        console.log('in 1 '+userID);
                         var mongoData = {};
                         mongoData.col = User;
                         mongoData.selector = '_id';
@@ -609,27 +630,14 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
                 // CALL TDISPTCH API TO BOOK
     			td.bookJob(jobInfo, access, function(data) {
                     // EXPIRED TOKEN GET NEW OnE  - (STRING MAY CHANGE ON TDIPATCH)
-                    if(data.message == 'Expired access token.') {
-                        // Get REFRESH TOKEN FROM DB
-                        td.getRefreshToken(userID, function(currToken) {
-                            // SEND TDISPATCH REFRESH TOKEN TO GET NEW ACCESS TOKEN
-                            td.refreshCurrentToken(currToken, function(newAccessToken) {
-                                // SAVE NEW ACCESS TOKEN INTO DB
-                                td.saveNewAccessToken(userID, newAccessToken, function(status) {
-                                    // IF SAVED TOKEN OK
-                                    if(status == true) {
-                                        td.bookJob(jobInfo, newAccessToken, function(data) {
-                                            // Booked With NEw token
-                                        })
-                                    }
-                                })
+                    td.manageExpiredToken(data.message, userID, function(expiredData) {
+                        if(expiredData.status == true) {
+                            td.bookJob(jobInfo, expiredData.newToken, function(data) {
+                                //
                             })
-                        })
-                    }
-
+                        }
+                    })
                     if(data.status == 'OK') {
-                        // BOOKED!
-                        console.log(data);
                         // SAVE BOOKING TO MONGO
                         td.saveQuote(jobInfo ,data, userID, function(status) {
                             func.sendInfo(res, status, {message: 'booked', errMessage: 'booking not saved'});
@@ -638,7 +646,33 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
     			})
     		})
         })
+	})
 
+    app.post('/api/cancel-job', function(req, res) {
+        pp.getUserID(req.cookies['remember_me'], function(userID) {
+            td.getAccessToken(userID, function(access) {
+                td.cancelJob({jobPK: req.body.data, token: access}, function(cancelData) {
+                    td.manageExpiredToken(cancelData.message, userID, function(expiredData) {
+                        if(expiredData.status == true) {
+                            td.cancelJob({jobID: req.body.data, token: access}, function(cancelData) {
+                                //
+                            })
+                        }
+                    })
+                    if(cancelData.status == 'OK') {
+                        // update status in mongo
+                        var mongoData = {col: Quote, fields: ["status"], newValues: ['cancelled'], selector: 'pk', selectorVal: req.body.data};
+                        // SAVE FINAL COST TO DB
+                        func.updateMongoFields(mongoData, function(status) {
+                            // send back info
+                            if(status) {
+                                func.sendInfo(res, status, {message: 'Job cancelled', errMessage: 'Job Not cancelled'});
+                            }
+                        })
+                    }
+                })
+            })
+        })
 	})
 
     app.post('/api/tdispatch-calc', function(req, res) {

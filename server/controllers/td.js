@@ -15,6 +15,7 @@ td.tokenUrl = 'http://api.tdispatch.com/passenger/oauth2/token';
 td.calcFareUrl = 'http://api.tdispatch.com/passenger/v1/locations/fare';
 td.bookJobUrl = 'http://api.tdispatch.com/passenger/v1/bookings';
 td.createAccountUrl = 'http://api.tdispatch.com/passenger/v1/accounts';
+td.trackBookingUrl = 'http://api.tdispatch.com/passenger/v1/bookings/track';
 
 // GET ALREADY SAVED ACCESS TOKEN
 td.getAccessToken = function(userID, callback) {
@@ -22,6 +23,27 @@ td.getAccessToken = function(userID, callback) {
         //console.log(docs['pk']);
 		callback(docs['accessToken']);
 	})
+}
+
+td.manageExpiredToken = function(msg, userID, callback) {
+	if(msg == 'Expired access token.') {
+		td.getRefreshToken(userID, function(currToken) {
+			// SEND TDISPATCH REFRESH TOKEN TO GET NEW ACCESS TOKEN
+			td.refreshCurrentToken(currToken, function(newAccessToken) {
+				// SAVE NEW ACCESS TOKEN INTO DB
+				td.saveNewAccessToken(userID, newAccessToken, function(status) {
+					callback({
+						status: true,
+						newToken: newAccessToken
+					});
+				})
+			})
+		})
+	} else {
+		callback({
+			status: false
+		});
+	}
 }
 
 td.getMainAccessToken = function(User, callback) {
@@ -180,8 +202,28 @@ td.bookJob = function(jobInfo, access, callback) {
 	});
 }
 
-// POST REQUEST = SENding DATA THROUGH THE BODY (DATA HIDDEN FROM vieW)
-// GET REQUEST = SENDING DATA THROUGH URLS (http://google.com/?search=midgets)
+td.cancelJob = function(params, callback) {
+	console.log(params);
+	var url = td.bookJobUrl+'/'+params.jobPK+'/cancel'+'?access_token='+params.token;
+	rest.postJson(url).on('complete', function(data, resp) {
+    	callback(data);
+    });
+}
+
+// Get driver info
+td.getDriverInfo = function(params, callback) {
+	var url = td.trackBookingUrl+'?access_token='+params.token;
+	var bodyData = {
+		"booking_pks": [
+	        params.bookingPK,
+	    ]
+	};
+
+	rest.postJson(url, bodyData).on('complete', function(data, resp) {
+    	callback(data);
+    });
+}
+
 
 // BringS BACK 1st REquiRED TDISPATCH AUTH CODE (NEEDED TO MAKE API CALLS)
 td.authCode = function(callback) {

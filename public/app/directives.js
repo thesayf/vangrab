@@ -214,3 +214,9 @@ app.directive('naviContractor', function() {
 })
 
 
+app.directive('cardAdded', function() {
+	return {
+		templateUrl: dir+'dash/views/modals/card-add.html',
+		controller: 'CardAddedCtrl',
+	}
+})

@@ -29,7 +29,7 @@
                           <td> <button data-toggle="modal" data-target="#mod-err" type="button" class="btn btn-space btn-warning col-md-12 col-xs-12">Note for Driver?</button></td>
                         </tr>
                         <tr>
-                          <td class="item">Price Estimate:<span class="icon s7-credit"></span></td>
+                          <td class="item">Price Estimate:<span ng-click="tester()" class="icon s7-credit"></span></td>
                             <td class="text-center">
                                 <div ng-if="dashInstant.fuelPrice > 0" class="">
                                     <strong><font size="6">£15</font>per hour</strong>
@@ -58,6 +58,7 @@
 
 <div dash-van-type></div>
 <div dash-route-plan></div>
+
 
 <div id="mod-err" tabindex="-1" role="dialog" class="modal fade">
       <div class="modal-dialog">
