@@ -92,7 +92,9 @@
             </div>
             </div>
             <div class="modal-footer">
-                <span ng-if="dashInstant.vanType !== undefined" class="pull-left" ><h4>Chosen: {{dashInstant.vanType}}</h4></span>
+                <span ng-if="dashInstant.vanName !== '' " class="pull-left" >
+                    <h4>Chosen: {{dashInstant.vanName}}</h4>
+                </span>
                 <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
                 <button type="button" data-dismiss="modal" class="btn btn-primary">Proceed</button>
             </div>

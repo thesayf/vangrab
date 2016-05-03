@@ -23,7 +23,11 @@
                                         <span class="icon s7-credit"></span>Payment Details
                                     </a>
                                 </li>
-                                <li data-toggle="modal" data-target="#mod-warning"><a href=""> <span class="icon s7-mail-open-file"></span>Contact Us</a></li>
+                                <li data-toggle="modal" data-target="#mod-warning">
+                                    <a href="" ng-click="isEmailSent == false">
+                                        <span class="icon s7-mail-open-file"></span>Contact Us
+                                    </a>
+                                </li>
                                 <li><a href="#" ng-click="logout()"> <span class="icon s7-power"></span>Sign Out</a></li>
                             </ul>
                         </li>
@@ -82,7 +86,7 @@
                     <h3>Send Us an Email</h3>
                 </div>
                 <div class="modal-body">
-                    <div class="panel-body">
+                    <div ng-if="isEmailSent == false" class="panel-body">
                         <form role="form">
                             <div class="form-group">
                                 <label>Your email address</label>
@@ -98,10 +102,13 @@
                             </div>
                         </form>
                     </div>
+                    <div ng-if="isEmailSent == true" class="panel-body">
+                        <h2>Email Sent!</h2>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
-                    <button ng-click="contactSend()" type="button" data-dismiss="modal" class="btn btn-warning">Send</button>
+                    <button ng-click="contactSend()" type="button" class="btn btn-warning">Send</button>
                 </div>
             </div>
         </div>
@@ -201,38 +208,40 @@
                                     <tbody class="no-border-x no-border-y">
                                         <tr>
                                             <td class="item">Job Name<span class="icon s7-ticket"></span></td>
-                                            <td>{{jobName}}</td>
+                                            <td>{{currBooking.jobName}}</td>
                                         </tr>
                                         <tr>
-                                           <td>{{status}}</td>
+                                           <td>{{currBooking.status}}</td>
                                         </tr>
                                         <tr>
                                             <td class="item">Driver Name<span class="icon s7-id"></span></td>
-                                            <td></td>
+                                            <td>{{currBooking.driverName}}</td>
                                         </tr>
                                         <tr>
                                             <td class="item">Driver Number:<span class="icon s7-phone"></span></td>
-                                            <td></td>
+                                            <td>{{currBooking.driverPhone}}</td>
                                         </tr>
                                         <tr>
                                             <td class="item">Vehicle:<span class="icon s7-car"></span></td>
-                                            <td>{{vanType}}</td>
+                                            <td>{{currBooking.vanType}}</td>
                                         </tr>
                                         <tr>
                                             <td class="item">Price:<span class="icon s7-credit"></span></td>
-                                            <td class="text-center"><strong><h1>£{{fuelPrice}}</h1></strong></td>
+                                            <td class="text-center"><strong><h1>£{{currBooking.fuelPrice}}</h1></strong></td>
                                         </tr>
                                         <tr>
                                             <td class="item">Route:<span class="icon s7-map-marker"></span></td>
-                                            <td><strong>Pickup:</strong> {{pickUp}} <br><strong> Dropoff:</strong> {{dropOff}}</td>
+                                            <td>
+                                                <strong>Pickup:</strong> {{currBooking.pickUp}}<br>
+                                                <strong> Dropoff:</strong> {{currBooking.dropOff}}</td>
                                         </tr>
                                         <tr>
                                             <td class="item">Date:<span class="icon s7-date"></span></td>
-                                            <td>{{jobDate}}</td>
+                                            <td>{{currBooking.jobDate}}</td>
                                         </tr>
                                         <tr>
                                             <td class="item">Notes:<span class="icon s7-comment"></span></td>
-                                            <td>"{{driverNote}}"</td>
+                                            <td>"{{currBooking.driverNote}}"</td>
                                         </tr>
                                         <tr ng-if="status !== 'cancelled' && status !== 'completed' ">
                                             <td class="item">Cancel Job:<span class="icon s7-close-circle"></span></td>

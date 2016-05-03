@@ -105,8 +105,7 @@
                             	<h4><strong>Signup for instant access to the app,</strong> pay when job is complete</h4>
                                 <input ng-model="user.firstname" type="text" name="firstName" placeholder="First name" required>
                                 <input ng-model="user.lastname" type="text" name="lastName" placeholder="Last name" required>
-                                <input ng-model="user.mobile" type="text" name="phone" placeholder="Phone number" required  ng-minlength="11">
-                                <span>Please enter your country dial coude e.g +44785268222</span>
+                                <input ng-model="user.mobile" type="text" name="phone" placeholder="Phone number" required>
                                 <input ng-model="user.username" type="email" name="email" placeholder="Email address (*)" required>
                                 <span ng-if="form.email.$error.required">Required</span>
                                 <span ng-if="form.email.$error.email">Not and email</span>

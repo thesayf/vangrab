@@ -26,6 +26,7 @@ app.factory("dashInstant", function(){
     return {
         jobName: '',
         vanType: '',
+        vanName: '',
         jobDate: '',
         fuelPrice: '',
         suggestedPrice: '',
@@ -76,7 +77,7 @@ app.factory("dashInstant", function(){
 app.factory("dashVans", function(){
     return {
         0: {
-            vanType: 'Car Derived Van',
+            vanType: 'Small Van',
             weight: '660kg',
             length: '1523m',
             width: '1473',
@@ -88,7 +89,7 @@ app.factory("dashVans", function(){
             tdAlias: 'Coupe'
         },
         1: {
-            vanType: 'Short Wheel Base',
+            vanType: 'Medium Van',
             weight: '1114kg',
             length: '2555',
             width: '1775',
@@ -100,7 +101,7 @@ app.factory("dashVans", function(){
             tdAlias: '4 Seater'
         },
         2: {
-            vanType: 'Long Wheel Base',
+            vanType: 'Large Van',
             weight: '1337kg',
             length: '3494',
             width: '1784',
@@ -112,7 +113,7 @@ app.factory("dashVans", function(){
             tdAlias: 'MPV 6'
         },
         3: {
-            vanType: 'Luton',
+            vanType: 'Jumbo Van',
             weight: '1031kg',
             length: '4144',
             width: '1960',
@@ -176,6 +177,33 @@ app.factory("bookings", function(){
         suggestedPrice: '',
         userID: "",
         vanType: "",
+        driverName: "",
+        driverPlate: "",
+        driverColor: "",
+        driverPK: "",
+        driverPhone: "",
+    }
+});
+
+app.factory("currBooking", function(){
+    return{
+        address: {},
+        bookingKey: "",
+        distance: {},
+        driverNote: "",
+        fuelPrice: '',
+        jobDate: "",
+        jobName: "",
+        pk: "",
+        status: "",
+        suggestedPrice: '',
+        userID: "",
+        vanType: "",
+        driverName: "",
+        driverPlate: "",
+        driverColor: "",
+        driverPK: "",
+        driverPhone: "",
     }
 });
 

@@ -63,21 +63,32 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
         }
     })
 
-      ////EMAIL FORM //////
-
+    // EMAIL FORM
     app.post("/api/contact-send/", function (req, res){
-      // var email = new sendgrid.Email();
-        //console.log(req.body)
-
+         //sends email to Moverspro from the users email address.
         sendgrid.send({
               to:       req.body.email.sentTo,
               from:     req.body.email.emailAddress,
               subject:  req.body.email.subject,
               text:     req.body.email.message
-        }, function(err, json) {
-              if (err) { return console.error(err); }
-              console.log(json);
-            });
+        }, function(err, data) {
+            //err brings back an error message from sendgrid
+            //the data is the data coming back from sendgrid if successful
+            if(err) {
+                //if there is an erorr will let you know
+                res.json({
+                    success:false,
+                    message: "was unable to send",
+                })
+            } else {
+                //if email has been deliveed it will let you know
+                res.json({
+                    success:true,
+                    message: "message was delivered",
+                    data: data
+                })
+            }
+        });
 
     })
 

@@ -235,6 +235,11 @@ app.controller('DashInstantCtrl', function($scope, $location, dashInstant, dashV
     // Start GMaps
     maps.init();
 
+    // Hide Picker When selected
+    $('#job-date-picker').datetimepicker().on('changeDate', function(ev){
+        $('#job-date-picker').datetimepicker('hide');
+    });
+
     $scope.showWaypointField = function(type) {
         var waypointFields = $('[data-address-type="'+type+'"]').length;
         var hiddenWaypointFields = $('[data-address-type="'+type+'"].hide').length;
@@ -244,6 +249,8 @@ app.controller('DashInstantCtrl', function($scope, $location, dashInstant, dashV
 
     $scope.chooseVan = function(vanType, $event) {
         $scope.dashInstant.vanType = $scope.dashVans[vanType]['tdID'];
+        $scope.dashInstant.vanName = $scope.dashVans[vanType]['vanType'];
+
         // Mark Chosen Van Box
         $('.panel-borders').removeClass('bord-picked');
         $.each($('.panel-borders'), function(i,v) {
@@ -290,6 +297,7 @@ app.controller('DashInstantCtrl', function($scope, $location, dashInstant, dashV
 
     // FROM BOOK BUTTON TO SERVER ROUTES (DATA IT SENDS: DASHINSTANT)
     $scope.bookInstantJob = function(){
+        // if customer has card in mongo
         if(user.cardAdded == 'added') {
             // SAVES JOB TO DB
             $http.post('/api/tdispatch-book', {data: dashInstant}).then(function(data){
@@ -388,7 +396,7 @@ app.controller('DashJobCompleteCtrl', function($scope, $location, dashInstant) {
 })
 
 // Ctrl For Navigation
-app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, infoGrab, bookings, bookingGrab, bookings, email, $location, misc, stripeForm, cardDetails) {
+app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, infoGrab, bookings, bookingGrab, bookings, email, $location, misc, stripeForm, cardDetails, currBooking) {
     auth.intercept(function(response) {
         // Grab appRoute.js Action Param
         $scope.views = views;
@@ -399,6 +407,9 @@ app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, in
         $scope.misc = misc;
         $scope.stripeForm = stripeForm;
         $scope.cardDetails = cardDetails;
+        $scope.currBooking = currBooking;
+        $scope.email = email;
+        $scope.isEmailSent = '';
 
         if(response.message !== 'authenticated' && views.currentType == 'dash') {
             $location.path('/login');
@@ -423,11 +434,15 @@ app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, in
     }
 
     $scope.contactSend = function(){
-        $http.post("/api/contact-send/", {email: email}).success(function(response){
-            if(response.success == 'authenticated') {
+        $http.post("/api/contact-send/", {email: $scope.email}).success(function(response){
+            if(response.success == true) {
                 // valid
+                $scope.email.emailAddress = '';
+                $scope.email.subject = '';
+                $scope.email.message = '';
+                $scope.isEmailSent = true;
             } else {
-                $location.path('/login');
+                $scope.isEmailSent = false;
             }
         });
         console.log("test to see if email")
@@ -443,16 +458,22 @@ app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, in
         var temp = $scope.bookings.filter(function(ele){
             return ele._id == id;
         })
-        $scope.jobID = temp[0]["_id"];
-        $scope.jobPK = temp[0]["pk"];
-        $scope.jobName = temp[0]["jobName"];
-        $scope.pickUp = temp[0]["address"]["start_location"]["name"];
-        $scope.dropOff = temp[0]["address"]["end_location"]["name"];
-        $scope.jobDate = temp[0]["jobDate"];
-        $scope.driverNote = temp[0]["driverNote"];
-        $scope.vanType = temp[0]["vanType"];
-        $scope.fuelPrice = temp[0]["fuelPrice"];
-        $scope.status = temp[0]["status"];
+        $scope.currBooking.jobID = temp[0]["_id"];
+        $scope.currBooking.jobPK = temp[0]["pk"];
+        $scope.currBooking.jobName = temp[0]["jobName"];
+        $scope.currBooking.pickUp = temp[0]["address"]["start_location"]["name"];
+        $scope.currBooking.dropOff = temp[0]["address"]["end_location"]["name"];
+        $scope.currBooking.jobDate = temp[0]["jobDate"];
+        $scope.currBooking.driverNote = temp[0]["driverNote"];
+        $scope.currBooking.vanType = temp[0]["vanType"];
+        $scope.currBooking.fuelPrice = temp[0]["fuelPrice"];
+        $scope.currBooking.suggestedPrice = temp[0]["suggestedPrice"];
+        $scope.currBooking.userID = temp[0]["userID"];
+        $scope.currBooking.driverName = temp[0]["driverName"];
+        $scope.currBooking.driverPlate = temp[0]["driverPlate"];
+        $scope.currBooking.driverColor = temp[0]["driverColor"];
+        $scope.currBooking.driverPK = temp[0]["driverPK"];
+        $scope.currBooking.driverPhone = temp[0]["driverPhone"];
     };
 
     /*var refresh = function() {
