@@ -260,6 +260,18 @@ app.controller('DashInstantCtrl', function($scope, $location, dashInstant, dashV
         });
     }
 
+    $scope.reviewBooking = function() {
+        $scope.stripeForm.checkCardRes(function(status) {
+            if(status == true) {
+                $scope.misc.hasCard = true;
+            } else {
+                $scope.misc.hasCard = false;
+            }
+        });
+    }
+
+
+
     $scope.updateMaps = function() {
         if($scope.dashInstant.address.start_location.name.formatted_address) {
             $scope.dashInstant.address.start_location.lat =
@@ -295,26 +307,7 @@ app.controller('DashInstantCtrl', function($scope, $location, dashInstant, dashV
         }
     }
 
-    // FROM BOOK BUTTON TO SERVER ROUTES (DATA IT SENDS: DASHINSTANT)
-    $scope.bookInstantJob = function(){
-        // if customer has card in mongo
-        if(user.cardAdded == 'added') {
-            // SAVES JOB TO DB
-            $http.post('/api/tdispatch-book', {data: dashInstant}).then(function(data){
-                console.log(data);
-                bookingGrab.displayAllRecords(null, "Quote", function(resp){
-                    $scope.bookings = resp;
-                    $scope.misc.myBookingsReady = true;
-                });
-            }, function(response){
-                // failure callback
-            });
-        } else {
-            // cant book need card
-            document.getElementById('payment-button').click();
-            $scope.stripeForm.checkCard();
-        }
-    }
+
 
     $scope.tester = function(){
         // SAVES JOB TO DB
@@ -348,6 +341,14 @@ app.controller('DashInstantCtrl', function($scope, $location, dashInstant, dashV
         $scope.dashInstant.suggestedPrice = res.data.data.fare.total_cost;
         dashInstant = $scope.dashInstant;
     }
+
+    $scope.$watch('misc.dirtModalHack', function(newVal, oldVal) {
+        console.log('hack '+newVal);
+        if(newVal == true) {
+            $('#review-booking-button').click();
+        }
+    })
+
 })
 
 app.controller('DashScheduleCtrl', function($scope, $location, dashInstant) {
@@ -396,7 +397,7 @@ app.controller('DashJobCompleteCtrl', function($scope, $location, dashInstant) {
 })
 
 // Ctrl For Navigation
-app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, infoGrab, bookings, bookingGrab, bookings, email, $location, misc, stripeForm, cardDetails, currBooking) {
+app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, infoGrab, bookings, bookingGrab, bookings, email, $location, misc, stripeForm, cardDetails, currBooking, dashInstant) {
     auth.intercept(function(response) {
         // Grab appRoute.js Action Param
         $scope.views = views;
@@ -410,6 +411,7 @@ app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, in
         $scope.currBooking = currBooking;
         $scope.email = email;
         $scope.isEmailSent = '';
+        $scope.dashInstant = dashInstant;
 
         if(response.message !== 'authenticated' && views.currentType == 'dash') {
             $location.path('/login');
@@ -528,12 +530,23 @@ app.controller('DashDnaviCtrl', function($scope, contractor, $route, $http, $loc
     contractor.currentView = $route.current.action;
 })
 
-app.controller('CardAddedCtrl', function($scope, user, stripeForm) {
+app.controller('CardAddedCtrl', function($scope, user, stripeForm, misc) {
     $scope.user = user;
     $scope.stripeForm = stripeForm;
+    $scope.misc = misc;
 
     $scope.addCard = function() {
-        $scope.stripeForm.getCardForm();
+        if($scope.misc.reviewCardRoute == true) {
+            $scope.stripeForm.getCardFormRes(function(resp) {
+                if(resp == true) {
+                    misc.reviewCardRoute == true
+                    //$('#add-card-close-icon').click();
+                    //$('#review-booking-modal')click();
+                }
+            });
+        } else {
+            $scope.stripeForm.getCardForm();
+        }
     }
 
     $scope.removeCard = function() {
@@ -542,4 +555,39 @@ app.controller('CardAddedCtrl', function($scope, user, stripeForm) {
         });
     }
 
+})
+
+
+app.controller('ReviewBookingCtrl', function($scope, user, stripeForm, misc, dashInstant, $http, bookings) {
+    $scope.dashInstant = dashInstant;
+    $scope.stripeForm = stripeForm;
+    $scope.bookings = bookings;
+    $scope.user = user;
+    $scope.misc = misc;
+
+    $scope.showAddCard = function() {
+        $('#payment-button').click();
+        $scope.misc.reviewCardRoute = true;
+    }
+
+    // FROM BOOK BUTTON TO SERVER ROUTES (DATA IT SENDS: DASHINSTANT)
+    $scope.bookInstantJob = function(){
+        // if customer has card in mongo
+        if(user.cardAdded == 'added') {
+            // SAVES JOB TO DB
+            $http.post('/api/tdispatch-book', {data: dashInstant}).then(function(data){
+                console.log(data);
+                bookingGrab.displayAllRecords(null, "Quote", function(resp){
+                    $scope.bookings = resp;
+                    $scope.misc.myBookingsReady = true;
+                });
+            }, function(response){
+                // failure callback
+            });
+        } else {
+            // cant book need card
+            document.getElementById('payment-button').click();
+            $scope.stripeForm.checkCard();
+        }
+    }
 })

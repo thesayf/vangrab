@@ -2,7 +2,10 @@
 
 app.factory('misc', function() {
     return {
-        myBookingsReady: false
+        myBookingsReady: false,
+        hasCard: false,
+        reviewCardRoute: false,
+        dirtModalHack: false,
     }
 })
 
@@ -280,6 +283,23 @@ app.service('stripeForm', function($http, user, cardDetails) {
         })
     }
 
+    stripeForm.getCardFormRes = function(callback) {
+        $('#payment-form').submit(function(event) {
+            event.preventDefault();
+            var $form = $(this);
+
+            Stripe.setPublishableKey('pk_test_GrFP5ytVZ9Df9ZKztAJbiOmc');
+
+            Stripe.card.createToken($form, function(status, res) {
+               // console.log(res);
+                $http.post("/api/add-card", res).success(function(status){
+                    stripeForm.checkCard();
+                    callback(status.success);
+                });
+            });
+        })
+    }
+
     stripeForm.checkCard = function() {
         if(user.cardAdded == 'added') {
             //
@@ -288,6 +308,17 @@ app.service('stripeForm', function($http, user, cardDetails) {
                 user.cardAdded = res.message;
                 cardDetails.brand = res.data.brand;
                 cardDetails.last4 = res.data.last4;
+            })
+        }
+    }
+
+    // With Response
+    stripeForm.checkCardRes = function(callback) {
+        if(user.cardAdded == 'added') {
+            callback(true);
+        } else {
+            $http.post('/api/check-card').success(function(res) {
+                callback(res.success);
             })
         }
     }

@@ -12,7 +12,7 @@
                     <span class="icon s7-menu"></span>
                 </a>
                 <div id="am-navbar-collapse" class="collapse navbar-collapse">
-                    <button data-toggle="modal" data-target="#md-review">Review booking</button>
+                    <button id="review-booking-modal" data-toggle="modal" data-target="#md-review">Review booking</button>
                     <button data-toggle="modal" data-target="#md-complete">Booking Complete</button>
                     <ul class="nav navbar-nav navbar-right am-user-nav">
                         <li class="dropdown"><a href="#" data-toggle="dropdown" role="button" aria-expanded="false" class="dropdown-toggle"><span class="angle-down s7-menu"></span></a>
@@ -102,9 +102,9 @@
                     </div>
                     <div ng-if="isEmailSent == true" class="panel-body">
                         <div class="text-center">
-                          <div class="i-circle text-success"><i class="icon s7-check"></i></div>
-                          <h4>Message Sent!</h4>
-                          <p>You email has been sent to our team and we will get back to you within the next 30 minutes</p>
+                            <div class="i-circle text-success"><i class="icon s7-check"></i></div>
+                            <h4>Message Sent!</h4>
+                            <p>You email has been sent to our team and we will get back to you within the next 30 minutes</p>
                         </div>
                     </div>
                 </div>
@@ -155,8 +155,8 @@
             </div>
         </div>
     </div>
-    
-      <!-- Completed booking  -------------------------------------------------------------------------------------------->
+
+    <!-- Completed booking  -------------------------------------------------------------------------------------------->
     <div id="md-complete" tabindex="-1" role="dialog" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -167,8 +167,8 @@
                 <div class="modal-body">
                     <div class="panel-body">
                         <div class="text-center">
-                          <div class="i-circle text-success"><i class="icon s7-check"></i></div>
-                          <h4>Awesome Your Job has been booked!</h4>
+                            <div class="i-circle text-success"><i class="icon s7-check"></i></div>
+                            <h4>Awesome Your Job has been booked!</h4>
                             <div><button>Crete a new Booking</button></div>
                             <div><button>Review Live Bookings</button></div>
                         </div>
@@ -181,76 +181,8 @@
             </div>
         </div>
     </div>
-    
-        <!-- Review Booking  -------------------------------------------------------------------------------------------->
-    <div id="md-review" tabindex="-1" role="dialog" class="modal fade">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button " data-dismiss="modal" aria-hidden="true" class="close"><i class="icon s7-close"></i></button>
-                    <h3>Review Booking</h3>
-                </div>
-                <div class="modal-body">
-                   <div class="modal-body form">
-                    <div class="form-group">
-                        <div class="user-profile col-md-6 col-sm-12">
-                            <div class=" info-block panel panel-default">
-                                <table class="no-border no-strip skills">
-                                    <tbody class="no-border-x no-border-y">
-                                        <tr>
-                                            <td class="item">Van type:</td>
-                                            <td>Luton</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="item">Hours:</td>
-                                            <td>4</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="item">Route:</td>
-                                            <td>London to leicester</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="item">Date and time:</td>
-                                            <td>25/06/2016 13:00</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="item">Price:</td>
-                                            <td>£60</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="user-profile col-md-6 col-sm-12">
-                            <ul>
-                            
-                            <li>Payment will be taken only once the job has been completed.</li>
-                            <li>Background- and identity-checked professionals FULLY INSURED</li>
-                            <li>you can cancel the bookings at any time.</li>
-                            <li>Lives status updates</li>
-                            <li>You will receive all you drivers information once a diver has been allocated.</li>
-                            </ul>
-                        </div>
-                        <div class="user-profile col-md-12 col-sm-12">
-                            <div class="form">
-                            <div class="form-group col-md-6 ">
-                              <label>Job Name</label>
-                              <input ng-model="dashInstant.jobName" type="name" placeholder="Job name" class="form-control">
-                            </div>
-                            <div class="form-group col-md-6 ">
-                              <label>Your Note for Driver</label>
-                              <textarea ng-model="dashInstant.driverNote" class="form-control"></textarea>
-                            </div>
-                            </div>
-                        </div>
-                        <button ng-click="bookInstantJob()" class="btn btn-danger btn-space btn-hspace col-md-12 col-xs-12">Book</button>
-                    </div>
-                </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
+
+
 
     <!-- LIVE BOOKINGS  -------------------------------------------------------------------------------------------->
     <div id="md-default" tabindex="-1" role="dialog" class="modal fade">
@@ -309,7 +241,7 @@
                                             <td>{{currBooking.jobName}}</td>
                                         </tr>
                                         <tr>
-                                           <td>{{currBooking.status}}</td>
+                                            <td>{{currBooking.status}}</td>
                                         </tr>
                                         <tr>
                                             <td class="item">Driver Name<span class="icon s7-id"></span></td>
@@ -332,34 +264,33 @@
                                             <td>
                                                 <strong>Pickup:</strong> {{currBooking.pickUp}}<br>
                                                 <strong> Dropoff:</strong> {{currBooking.dropOff}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="item">Date:<span class="icon s7-date"></span></td>
-                                            <td>{{currBooking.jobDate}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="item">Notes:<span class="icon s7-comment"></span></td>
-                                            <td>"{{currBooking.driverNote}}"</td>
-                                        </tr>
-                                        <tr ng-if="status !== 'cancelled' && status !== 'completed' ">
-                                            <td class="item">Cancel Job:<span class="icon s7-close-circle"></span></td>
-                                            <td>
-                                                <button data-dismiss="modal" class="btn btn-primary" ng-click="cancelJob(jobPK)">cancel</button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                            </tr>
+                                            <tr>
+                                                <td class="item">Date:<span class="icon s7-date"></span></td>
+                                                <td>{{currBooking.jobDate}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="item">Notes:<span class="icon s7-comment"></span></td>
+                                                <td>"{{currBooking.driverNote}}"</td>
+                                            </tr>
+                                            <tr ng-if="status !== 'cancelled' && status !== 'completed' ">
+                                                <td class="item">Cancel Job:<span class="icon s7-close-circle"></span></td>
+                                                <td>
+                                                    <button data-dismiss="modal" class="btn btn-primary" ng-click="cancelJob(jobPK)">cancel</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div card-added></div>
+
     </div>
-
-    <div card-added></div>
-
-
-</div>
 
 </body>

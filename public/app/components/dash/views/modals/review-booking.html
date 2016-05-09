@@ -1,0 +1,74 @@
+<div id="md-review" tabindex="-1" role="dialog" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button " data-dismiss="modal" aria-hidden="true" class="close"><i class="icon s7-close"></i></button>
+                <h3>Review Booking</h3>
+            </div>
+            <div class="modal-body">
+                <div class="modal-body form">
+                    <div class="form-group">
+                        <div class="user-profile col-md-6 col-sm-12">
+                            <div class=" info-block panel panel-default">
+                                <table class="no-border no-strip skills">
+                                    <tbody class="no-border-x no-border-y">
+                                        <tr>
+                                            <td class="item">Van type:</td>
+                                            <td>{{dashInstant.vanName}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item">Hours:</td>
+                                            <td>4</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item">Route:</td>
+                                            <td>{{dashInstant.address.start_location.name}}
+                                                to {{dashInstant.address.end_location.name}}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item">Date and time:</td>
+                                            <td>{{dashInstant.jobDate}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item">Price:</td>
+                                            <td>£60</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="user-profile col-md-6 col-sm-12">
+                            <ul>
+                                <li>Payment will be taken only once the job has been completed.</li>
+                                <li>Background- and identity-checked professionals FULLY INSURED</li>
+                                <li>you can cancel the bookings at any time.</li>
+                                <li>Lives status updates</li>
+                                <li>You will receive all you drivers information once a diver has been allocated.</li>
+                            </ul>
+                        </div>
+                        <div class="user-profile col-md-12 col-sm-12">
+                            <div class="form">
+                                <div class="form-group col-md-6 ">
+                                    <label>Job Name</label>
+                                    <input ng-model="dashInstant.jobName" type="name" placeholder="Job name" class="form-control">
+                                </div>
+                                <div class="form-group col-md-6 ">
+                                    <label>Your Note for Driver</label>
+                                    <textarea ng-model="dashInstant.driverNote" class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+                <button ng-if="misc.reviewCardRoute = true" data-dismiss="modal" ng-click="showAddCard()" class="btn btn-danger btn-space btn-hspace">Add Card</button>
+
+                <button ng-if="misc.hasCard == true" data-dismiss="modal" ng-click="bookInstantJob()" class="btn btn-danger btn-space btn-hspace">Book Job</button>
+            </div>
+        </div>
+    </div>
+</div>

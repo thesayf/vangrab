@@ -220,3 +220,10 @@ app.directive('cardAdded', function() {
 		controller: 'CardAddedCtrl',
 	}
 })
+
+app.directive('reviewBooking', function() {
+	return {
+		templateUrl: dir+'dash/views/modals/review-booking.html',
+		controller: 'ReviewBookingCtrl',
+	}
+})
