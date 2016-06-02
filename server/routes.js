@@ -78,7 +78,7 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
                 //if there is an erorr will let you know
                 res.json({
                     success:false,
-                    message: "was unable to send",
+                    message: "Was unable to send email. Try again later.",
                 })
             } else {
                 //if email has been deliveed it will let you know
@@ -140,15 +140,13 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
     app.post("/api/grab-bookings", function(req, res){
         if(req.cookies["remember_me"]) {
             pp.getUserID(req.cookies["remember_me"], function(userID){
-                console.log(userID);
                 //var tempdb = db.getCollection. req.body.colName;
                 Quote.find({userID: userID}, function(err, records){
-                    res.json({
-                        success:true,
-                        message: "found",
-                        status: 1,
-                        data:records
-    			    })
+                    if(err) {
+                        func.sendInfo(res, false, {errMessage: 'There was error, try again later.'});
+                    } else {
+                        func.sendInfo(res, true, {data: records, errMessage: 'There was error, try again later.'});
+                    }
                 })
             });
         } else {
@@ -198,7 +196,7 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
         mongoData.selectorVal = obj.booking_pk;
         mongoData.pullBack = true;
 
-        console.log(obj.new_booking_status);
+        //console.log(obj.new_booking_status);
 
         /*dispatched
         confirmed
@@ -210,10 +208,10 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
 
         if(obj.new_booking_status == 'confirmed') {
             func.userIDByBookingPk(obj.booking_pk, function(userID) {
-                console.log(userID);
+                //console.log(userID);
                 td.getAccessToken(userID, function(token) {
                     var sendData = {userID: userID, token: token, bookingPK: obj.booking_pk};
-                    console.log(obj.booking_pk);
+                    //console.log(obj.booking_pk);
                     td.getDriverInfo(sendData, function(resp) {
                         var mongoData = {};
                         mongoData.col = Quote;
@@ -236,9 +234,9 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
 
         if(obj.new_booking_status == "completed") {
             func.updateMongoFields(mongoData, function(status) {
-                console.log(status);
+                //console.log(status);
                 if(status == true) {
-                    console.log('in 0');
+                    //console.log('in 0');
                     // GET ACCESS TOKEN & STRIPE ID FROM DB
                     func.userIDByBookingPk(obj.booking_pk, function(userID) {
                         var mongoData = {};
@@ -247,22 +245,22 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
                         mongoData.selectorVal = userID;
                         mongoData.fields = {"stripeID":1, "cardID":1, "accessToken":1};
                         func.getMongoFields(mongoData, function(respo) {
-                            console.log('in 2 ');
-                            console.log(respo);
+                            //console.log('in 2 ');
+                            //console.log(respo);
                             // GET FINAL COST FROM TD
                             td.getFinalCost(obj.booking_pk, respo.accessToken, function(bookingData) {
-                                console.log('in 3 ');
-                                console.log(bookingData.booking.total_cost.value);
+                                //console.log('in 3 ');
+                                //console.log(bookingData.booking.total_cost.value);
                                 var price = bookingData.booking.total_cost.value;
                                 // STRIPE CHARGE
                                 stripePay.chargeCustomer(price, respo.stripeID, function(resp) {
-                                    console.log('in 4 ');
+                                    //console.log('in 4 ');
                                     // ALSO SAVE PRICE TO MONGO
-                                    console.log(resp);
+                                    //console.log(resp);
                                     var mongoData = {col: Quote, fields: ["finalCost"], newValues: [price], selector: 'pk', selectorVal: obj.booking_pk};
                                     // SAVE FINAL COST TO DB
                                     func.updateMongoFields(mongoData, function(status) {
-                                        console.log('in 5 ');
+                                        //console.log('in 5 ');
                                         if(status) {
                                             // if
                                         }
@@ -273,7 +271,7 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
                     })
 
                 } else {
-                    console.log(status);
+                    //console.log(status);
                 }
             })
         } // IF COMPLETED STATUS
@@ -297,7 +295,7 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
         contact.organization = req.body.contact.organization;
         contact.name = req.body.contact.name;
         contact.relationship = req.body.contact.relationship;
-        console.log(req.body);
+        //console.log(req.body);
         contact.save(function(err, user){
             if(err){
                 return done(err);
@@ -313,14 +311,48 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
 
 
 	/////  LOGIN SYSTEM  /////
-    app.post("/api/login", passport.authenticate('local'), function(req, res){
-        pp.issueToken(req.user, function(err, token) {
-            res.cookie('remember_me', token, { maxAge: 604800000 });
-            if (err) {return next(err);}
-            //return next();
-        });
-		res.json(req.user);
-	});
+    app.post('/api/login', function(req, res, next) {
+        passport.authenticate('local', function(err, user, info) {
+            if (user === false) {
+                return res.json({
+                    success: false,
+                    message: 'Unable to login.'
+                });
+            } else {
+                pp.issueToken(user, function(err, token) {
+                    res.cookie('remember_me', token, { maxAge: 604800000 });
+                });
+                return res.json({
+                    success: true,
+                    message: 'Login successful.'
+                });
+            }
+        })(req, res, next);
+    });
+
+
+    passport.use('local', new localStrategy(function(username, password, done){
+	    User.findOne({username: username, password: password}, function(err, user){
+	        if(user){
+                return done(null, user);
+            } else {
+                return done(null, false, {message: 'Unable to login'});
+            }
+	    });
+	}));
+
+	passport.serializeUser(function(user, done) {
+        done(null, user);
+    });
+    passport.deserializeUser(function(user, done) {
+        done(null, user);
+    });
+
+
+
+    /*app.post("/api/login", passport.authenticate('local'), function(req, res){
+
+	});*/
 
 	app.post("/api/signin", passport.authenticate('local-admin'), function(req, res){
 		res.json(req.staff);
@@ -359,7 +391,7 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
 		res.send(req.isAuthenticated() ? req.staff : '0');
 	});
 
-    //This registers the Users
+    // This registers the Users
 	app.post("/api/register", function(req, res){
         //req.body.username = 'test';
 
@@ -396,26 +428,36 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
 				user.lastname = 'test last';
 				user.mobile = '+447894564410';*/
 
-                // Save to mongo
-				user.save(function(err, user){
-                    // Create Tdispatch account for user
-                    td.createAccount(user, function(data) {
-                        // Save xtra details from tdisptch to user db
-                        td.saveAccountDetails(User, data, user, function(status) {
-                            if(status == true) {
+                // Create Tdispatch account for user
+                td.createAccount(user, function(data) {
+                    if(data.status_code !== 200) {
+                        if(data.status_code == 400) {
+                            func.sendInfo(res, false, {errMessage: 'There was error, try again later.'});
+                        } else {
+                            func.sendInfo(res, false, {errMessage: 'This phone number already exists, please call us to reclaim this number or use a different number.'});
+                        }
+                    } else {
+                        user.pk = data['passenger']['pk'];
+                        user.refreshToken = data['passenger']['refresh_token'];
+                        user.accessToken = data['passenger']['access_token'];
+                        user.save(function(err, user){
+                            if(err) {
+                                func.sendInfo(res, false, {errMessage: 'There was error, try again later.'});
+                            } else {
                                 pp.issueToken(user, function(err, token) {
                                     res.cookie('remember_me', token, { maxAge: 604800000 });
                                     if(err) {
-                                        return next(err);
+                                        func.sendInfo(res, false, {errMessage: 'There was error, try again later.'});
                                     } else {
                                         res.json(req.user);
                                     }
                                 });
                             }
                         })
-                    })
-				});
-			} //else close
+                    }
+                }) // End td.createAccount
+
+			} // End if user doesnt already exist
 		});
 	});
 
@@ -453,7 +495,7 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
                     var tempFields = ["cardID", "cardAdded"];
                     var tempValues = [undefined, undefined];
                     func.updateUserFields(userID, tempFields, tempValues, function(status) {
-                        console.log(status);
+                        //console.log(status);
                         if(status == true) {
                             return res.json({
                                 success: true,
@@ -483,7 +525,7 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
                 //IF uSER ALREDY STRIPED
                 if(userFields.stripeID) {
                     stripePay.addCard(userFields.stripeID, userData.tokenID, function(cardData) {
-                        console.log(cardData);
+                        //console.log(cardData);
                         if(cardData.id) {
                             //SAVE TO MONGO
                             stripePay.saveCardData(cardData, userData.id, function(status) {
@@ -495,7 +537,7 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
                                 } else {
                                     return res.json({
                                         success: false,
-                                        message: status
+                                        message: 'The card can not be processed, please check your card details.'
                                     })
                                 }
                             })
@@ -503,7 +545,7 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
                         } else {
                             return res.json({
                                 success: false,
-                                message: 'no card id found'
+                                message: 'The card can not be processed, please check your card details.'
                             })
                         }
                     })
@@ -547,7 +589,7 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
 	//**driverlist** Displays our driver information in the admin Driver Page.
  	app.post('/api/driverlist', function (req, res) {
 		Driver.find({},{password: 0}, function (err, docs) {
-			console.log(docs);
+			//console.log(docs);
 			res.json({
 				success:true,
 				message: "found",
@@ -653,6 +695,8 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
                         td.saveQuote(jobInfo ,data, userID, function(status) {
                             func.sendInfo(res, status, {message: 'booked', errMessage: 'booking not saved'});
                         })
+                    } else {
+                        func.sendInfo(res, false, {errMessage: 'We were unable to book your job.'});
                     }
     			})
     		})
@@ -678,8 +722,24 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
                             // send back info
                             if(status) {
                                 func.sendInfo(res, status, {message: 'Job cancelled', errMessage: 'Job Not cancelled'});
+                            } else {
+                                func.sendInfo(res, false, {errMessage: 'Job Not cancelled'});
                             }
                         })
+                    } else {
+                        td.getBookingData(req.body.data, access, function(bookingInfo) {
+                            if(bookingInfo.booking.status == 'missed') {
+                                var mongoData = {col:Quote, fields:["status"], newValues: [bookingInfo.booking.status], selector:'pk', selectorVal:req.body.data};
+                                func.updateMongoFields(mongoData, function(status) {
+                                    if(status) {
+                                        func.sendInfo(res, true, {message: 'Job Cancelled'});
+                                    } else {
+                                        func.sendInfo(res, false, {errMessage: 'Job Not Cancelled'});
+                                    }
+                                })
+                            }
+                        })
+                        //func.sendInfo(res, false, {errMessage: 'Job Not cancelled'});
                     }
                 })
             })
@@ -716,7 +776,7 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
 
     		// save the quote
     		quote.save(function(err) {
-    			console.log(err);
+    			//console.log(err);
     			if(err) {
     				return done(false);
     			} else {
@@ -737,21 +797,7 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
 
 
 //THIS IS THE USER SIGN IN CONDITIONS///
-	passport.use('local', new localStrategy(function(username, password, done){
-	    User.findOne({username: username, password: password}, function(err, user){
-	        if(user){
-                return done(null, user);
-            }
-	    	return done(null, false, {message: 'Unable to login'});
-	    });
-	}));
 
-	passport.serializeUser(function(user, done) {
-        done(null, user);
-    });
-    passport.deserializeUser(function(user, done) {
-        done(null, user);
-    });
 
 
 //THIS IS THE STAFF SIGN IN CONDITIONS///

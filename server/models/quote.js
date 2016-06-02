@@ -7,6 +7,8 @@ var quoteSchema = mongoose.Schema({
 	jobName: String,
 	vanType: String,
 	jobDate: String,
+	jobHoursEsti: Number,
+	estiCalc: Number,
 	fuelPrice: Number,
 	suggestedPrice: Number,
 	driverNote: String,

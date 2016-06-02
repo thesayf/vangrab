@@ -20,7 +20,8 @@
     "angular-route": "~1.4.4",
     "jquery": "~2.1.4",
     "angular-google-places-autocomplete": "~0.2.7",
-    "toastr": "~2.1.2"
+    "toastr": "~2.1.2",
+    "seiyria-bootstrap-slider": "latest",
   },
   "resolutions": {
     "angular": "1.4.4"

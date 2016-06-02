@@ -8,7 +8,8 @@ var passport        = require('passport');
 var localStrategy   = require('passport-local').Strategy;
 var needle          = require('needle');
 var rest            = require('restler');
-var crypto = require('crypto');
+var flash           = require('connect-flash');
+var crypto          = require('crypto');
 
 
 var Quote       = require(__dirname + '/server/models/quote');
@@ -32,6 +33,7 @@ app.use(session({secret: 'this is the secret'}));
 app.use(cookieParser('this is the secret'));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(flash());
 
 app.use(express.static(__dirname + '/public'));
 

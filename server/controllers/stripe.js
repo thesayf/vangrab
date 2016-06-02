@@ -102,8 +102,8 @@ stripePay.getCard = function(stripeID, cardID, callback) {
     stripe.customers.retrieveCard(
         stripeID, cardID,
     function(err, card) {
-        console.log(err);
-        console.log(card);
+        //console.log(err);
+        //console.log(card);
         callback(card);
     });
 }

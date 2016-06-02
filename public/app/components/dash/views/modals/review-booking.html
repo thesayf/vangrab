@@ -2,9 +2,10 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button " data-dismiss="modal" aria-hidden="true" class="close"><i class="icon s7-close"></i></button>
+                <button type="button" id="review-booking-close" data-dismiss="modal" aria-hidden="true" class="close"><i class="icon s7-close"></i></button>
                 <h3>Review Booking</h3>
             </div>
+
             <div class="modal-body">
                 <div class="modal-body form">
                     <div class="form-group">
@@ -63,11 +64,13 @@
                     </div>
                 </div>
             </div>
+
             <div class="modal-footer">
                 <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
-                <button ng-if="misc.reviewCardRoute = true" data-dismiss="modal" ng-click="showAddCard()" class="btn btn-danger btn-space btn-hspace">Add Card</button>
 
-                <button ng-if="misc.hasCard == true" data-dismiss="modal" ng-click="bookInstantJob()" class="btn btn-danger btn-space btn-hspace">Book Job</button>
+                <button ng-if="misc.hasCard !== true" data-dismiss="modal" data-toggle="modal" data-target="#stripe-addcard" ng-click="showAddCard()" class="btn btn-danger btn-space btn-hspace">Add Card</button>
+
+                <button ng-if="misc.hasCard == true" ng-click="bookInstantJob()" class="btn btn-danger btn-space btn-hspace">Book Job</button>
             </div>
         </div>
     </div>

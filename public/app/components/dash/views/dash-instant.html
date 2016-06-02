@@ -26,14 +26,13 @@
                                 </tr>
                                 <tr>
                                     <td class="item">Hours:<span class="icon s7-timer"></span></td>
-                                    <td><input type="text" value="" class="bslider form-control"></td>
+                                    <td><input ng-change="algoCalc()" ng-model="dashInstant.jobHoursEsti" type="text" value="" class="bslider form-control"></td>
                                 </tr>
                                 <tr>
                                     <td class="item">Price Estimate:<span ng-click="tester()" class="icon s7-credit"></span></td>
                                     <td class="text-center">
                                         <div ng-if="dashInstant.fuelPrice > 0" class="">
-                                            <strong><font size="6">£15</font>per hour</strong>
-                                            <div> + £{{dashInstant.fuelPrice}} Fuel</div>
+                                            <strong><font size="6">£{{dashInstant.estiCalc}}</font></strong>
                                         </div>
                                     </td>
                                 </tr>

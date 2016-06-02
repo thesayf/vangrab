@@ -1,5 +1,11 @@
 //======================================******START OF FACTORIES******=====================================================//
 
+app.factory('deets', function() {
+    return {
+        number: '555-5555'
+    }
+})
+
 app.factory('misc', function() {
     return {
         myBookingsReady: false,
@@ -31,6 +37,8 @@ app.factory("dashInstant", function(){
         vanType: '',
         vanName: '',
         jobDate: '',
+        jobHoursEsti: '',
+        estiCalc: '',
         fuelPrice: '',
         suggestedPrice: '',
         driverNote: '',
@@ -86,7 +94,7 @@ app.factory("dashVans", function(){
             width: '1473',
             height: '1181',
             MPG: '68.2',
-            hourPriceDriver: '25',
+            hourPriceDriver: '15',
             hourPricePorter: '10',
             tdID: '5093aff36e77c305510003a5',
             tdAlias: 'Coupe'
@@ -98,7 +106,7 @@ app.factory("dashVans", function(){
             width: '1775',
             height: '1406',
             MPG: '40.4',
-            hourPriceDriver: '30',
+            hourPriceDriver: '20',
             hourPricePorter: '12',
             tdID: '521258566e77c363f306e803',
             tdAlias: '4 Seater'
@@ -110,7 +118,7 @@ app.factory("dashVans", function(){
             width: '1784',
             height: '2025',
             MPG: '33.2',
-            hourPriceDriver: '35',
+            hourPriceDriver: '20',
             hourPricePorter: '12',
             tdID: '50c612796e77c3380a00dac9',
             tdAlias: 'MPV 6'
@@ -261,11 +269,25 @@ app.factory("cardDetails", function(){
 //    return bookingInfo;
 //});
 
+app.service('hackTools', function() {
+    var hackTools = {};
+
+    hackTools.fixModalScroll = function(eleID) {
+        $('#'+eleID+'').css('overflow', 'auto');
+        $('body').css('overflow', 'auto');
+    }
+
+    return hackTools;
+})
+
+
+
+
 app.service('stripeForm', function($http, user, cardDetails) {
 
     var stripeForm = {};
 
-    stripeForm.getCardForm = function() {
+    stripeForm.getCardForm = function(callback) {
         $('#payment-form').submit(function(event) {
             event.preventDefault();
             var $form = $(this);
@@ -275,9 +297,8 @@ app.service('stripeForm', function($http, user, cardDetails) {
             Stripe.card.createToken($form, function(status, res) {
                // console.log(res);
                 $http.post("/api/add-card", res).success(function(status){
-                    if(status.success == true) {
-                        stripeForm.checkCard();
-                    }
+                    stripeForm.checkCard();
+                    callback(status);
                 });
             });
         })
@@ -301,7 +322,7 @@ app.service('stripeForm', function($http, user, cardDetails) {
     }
 
     stripeForm.checkCard = function() {
-        if(user.cardAdded == 'added') {
+        if(user.cardAdded == 'added' && cardDetails.last4 !== '') {
             //
         } else {
             $http.post('/api/check-card').success(function(res) {
@@ -325,13 +346,9 @@ app.service('stripeForm', function($http, user, cardDetails) {
 
     stripeForm.removeCard = function(callback) {
         $http.post('/api/remove-card').success(function(res) {
-            if(res.success == true) {
-                user.cardAdded == 'none';
-                callback(user.cardAdded);
-            }
+            callback(res.success);
         })
     }
-
     return stripeForm;
 })
 
@@ -363,8 +380,8 @@ app.service('bookingGrab', function($http, bookings){
 
     bookingGrab.displayAllRecords = function(id, colName, callback) {
          $http.post('/api/grab-bookings', {"id":id, "colName":colName}).success(function(response) {
-             bookings = response.data;
-             callback(bookings);
+             //bookings = response.data;
+             callback(response);
         });
     };
     return bookingGrab;
@@ -453,8 +470,8 @@ app.service('maps', function(dashInstant, $timeout, $window) {
                 console.log(status);
             }
             google.maps.event.trigger(map, 'resize');
+            callback(dashInstant.distance);
         });
-        callback(dashInstant.distance);
     }
     return maps;
 })
@@ -728,5 +745,36 @@ app.service('validation', function() {
     return validation;
 
 })
+
+
+
+app.service('func', function(dashInstant) {
+    var func = {};
+
+    func.resetQuote = function() {
+        dashInstant.jobName = '';
+        dashInstant.vanType = '';
+        dashInstant.vanName = '';
+        dashInstant.jobDate = '';
+        dashInstant.fuelPrice = '';
+        dashInstant.suggestedPrice = '';
+        dashInstant.driverNote = '';
+        dashInstant.address.start_location.name = '';
+        dashInstant.address.start_location.lat = '';
+        dashInstant.address.start_location.lng = '';
+        dashInstant.address.end_location.name = '';
+        dashInstant.address.end_location.lng = '';
+        dashInstant.address.end_location.lng = '';
+        dashInstant.distance = 0;
+        dashInstant.payment_method = 'cash';
+        dashInstant.pk = '';
+        dashInstant.recieptUrl = '';
+        dashInstant.status = '';
+        dashInstant.finalCost = '';
+    }
+
+    return func;
+})
+
 
 //======================================******END OF SERVICES ******=====================================================//

@@ -5,8 +5,8 @@ var func = {};
 
 func.getUserFields = function(userID, fields, callback) {
     User.findOne({'_id': userID}, fields, function (err, doc) {
-        console.log(doc);
-        console.log(err);
+        //console.log(doc);
+        //console.log(err);
         callback(doc);
     });
 }
@@ -106,17 +106,21 @@ func.param = function(data) {
 }
 
 func.sendInfo = function(res, status, dataObj) {
+    //console.log(dataObj);
+    if(dataObj.data) {
+        var dataHold = dataObj.data;
+    }
     if(status == true) {
         res.json({
             success: status,
             message: dataObj.message,
-            data: dataObj.data
+            data: dataHold
         })
     } else {
         res.json({
             success: status,
             message: dataObj.errMessage,
-            data: dataObj.data
+            data: dataHold
         })
     }
 }

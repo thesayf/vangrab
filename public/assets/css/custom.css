@@ -48,3 +48,5 @@
 .no-pad-l{
     padding-left: 0px !important;
 }
+
+.slider.slider-horizontal {width: 130px;}

@@ -121,6 +121,13 @@ td.getFinalCost = function(bookingID, access, callback) {
 	});
 }
 
+td.getBookingData = function(bookingID, access, callback) {
+	var url = td.bookJobUrl+'/'+bookingID+'?access_token='+access;
+	rest.get(url).on('complete', function(data) {
+  		callback(data);
+	});
+}
+
 td.calcFare = function(data, access, callback) {
 	var info = data.req.body.data;
 	var jsonFare = {
@@ -152,7 +159,7 @@ td.calcFare = function(data, access, callback) {
 	    ]*/
 	}
 
-	console.log(jsonFare);
+	//console.log(jsonFare);
 
 	var url = td.calcFareUrl+'?access_token='+access;
 
@@ -203,7 +210,7 @@ td.bookJob = function(jobInfo, access, callback) {
 }
 
 td.cancelJob = function(params, callback) {
-	console.log(params);
+	//console.log(params);
 	var url = td.bookJobUrl+'/'+params.jobPK+'/cancel'+'?access_token='+params.token;
 	rest.postJson(url).on('complete', function(data, resp) {
     	callback(data);
@@ -241,8 +248,8 @@ td.authCode = function(callback) {
 	var url = td.authUrl+'?'+options;
 	var databody = {'username': 'test444@test.com', 'password': '123'};
     rest.postJson(url, databody).on('complete', function(data, resp) {
-        console.log(resp);
-        console.log(data);
+        //console.log(resp);
+        //console.log(data);
 	});
 }
 
@@ -272,16 +279,20 @@ td.refreshToken = function(refreshToken) {
     options = func.param(options);
 
     var url = td.tokenUrl+'?'+options;
-    console.log(url);
+    //console.log(url);
     var databody = {'username': 'test444@test.com', 'password': '123'};
 
     rest.postJson(url, databody).on('complete', function(data, resp) {
-		console.log(data);
+		//console.log(data);
 	});
 
 }
 
-td.saveAccountDetails = function(User, data, user, callback) {
+td.getBookingInfo = function() {
+
+}
+
+/*td.saveAccountDetails = function(User, data, user, callback) {
     User.findOne({ _id: user._id }, function (err, doc){
         console.log(err);
         console.log(data);
@@ -291,13 +302,13 @@ td.saveAccountDetails = function(User, data, user, callback) {
         doc.accessToken = data['passenger']['access_token'];
         doc.save(function(err) {
             if(err) {
-                callback(err);
+                callback(false);
             } else {
                 callback(true);
             }
         });
     });
-}
+}*/
 
 td.saveQuote = function(jobInfo, data, userID, callback) {
 	var quote = new Quote();
@@ -317,7 +328,7 @@ td.saveQuote = function(jobInfo, data, userID, callback) {
 
 	// save the quote
 	quote.save(function(err) {
-		console.log(err);
+		//console.log(err);
 		if(err) {
 			callback(false);
 		} else {

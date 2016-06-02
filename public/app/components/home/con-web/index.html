@@ -107,12 +107,12 @@
                                 <input ng-model="user.lastname" type="text" name="lastName" placeholder="Last name" required>
                                 <input ng-model="user.mobile" type="text" name="phone" placeholder="Phone number" required>
                                 <input ng-model="user.username" type="email" name="email" placeholder="Email address (*)" required>
-                                <span ng-if="form.email.$error.required">Required</span>
-                                <span ng-if="form.email.$error.email">Not and email</span>
-                                <input ng-model="user.password" type="password" name="password" placeholder="Password" required ng-minlength="6">
-                                <span ng-if="form.password.$error.required">Required</span>
-                                <span ng-if="form.password.$error.minlength">The password has to be a minimum of 6 characters</span>
-                                <button ng-disabled="form.$invalid "ng-click="register(user)">Get Started Now</button>
+                                <span>Required</span>
+                                <span>Not and email</span>
+                                <input ng-model="user.password" type="password" name="password" placeholder="Password" >
+                                <span>Required</span>
+                                <span>The password has to be a minimum of 6 characters</span>
+                                <button ng-click="register(user)">Get Started Now</button>
                                 <p class="text-desc">* By creating an account, you agree with the <a ng-href="consumer-terms">Terms and conditions Policy</a></p>
                                 <div class="submit-status"></div> <!-- submit status -->
                             </form>
