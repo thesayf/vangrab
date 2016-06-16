@@ -26,7 +26,7 @@ app.controller('DashStatusCtrl', function() {
 
 
 // Ctrl For Signup
-app.controller('DashSignupCtrl', function($scope, $http, $rootScope, validation, $location) {
+app.controller('DashSignupCtrl', function($scope, $http, $rootScope, validation, $location, user) {
     $scope.user = {};
     $scope.user.businesstype = 'Business Type';
     $scope.bizType = {
@@ -40,7 +40,38 @@ app.controller('DashSignupCtrl', function($scope, $http, $rootScope, validation,
     };
 
     $scope.register = function(user){
-        console.log("im in the controller");
+        // if num has +44
+        if(user.mobile.indexOf('+440') > -1) {
+            //
+        }
+
+        var valiOptions = [
+            {eleName: 'userFirstName', type: 'text', msg: 'Please enter your first name!'},
+            {eleName: 'userLastName', type: 'text', msg: 'Please enter your last name!'},
+            {eleName: 'userPhone', type: 'phone', msg: 'Please enter your phone number!'},
+            {eleName: 'userEmail', type: 'email', msg: 'Please enter a email!'},
+            {eleName: 'userPassword', type: 'password', msg: 'Please enter a password!'}
+        ];
+
+        validation.checkVal(valiOptions, function(callback) {
+            console.log(callback);
+            /*
+            if(callback > 0) {
+                return false
+            } else {
+                $http.post('/api/register', $scope.user).success(function(user){
+                    if(user.success == false) {
+                        toastr.error(user.message);
+                    } else {
+                        $location.url("/dash");
+                        $rootScope.currentUser = user;
+                        console.log(user);
+                    }
+                });
+            }*/
+        })
+
+        /*
         $http.post('/api/register', $scope.user).success(function(user){
             if(user.success == false) {
                 toastr.error(user.message);
@@ -50,7 +81,7 @@ app.controller('DashSignupCtrl', function($scope, $http, $rootScope, validation,
                 console.log(user);
             }
         });
-
+*/
 
         /*var valiOptions = [
             {eleName: 'userAddress1', type: 'text', msg: 'Please enter your address!'},
@@ -420,18 +451,19 @@ app.controller('DashAddressBookCtrl', function($scope, $http, $rootScope) {
 })
 
 app.controller('DashJobCompleteCtrl', function($scope, $location, dashInstant) {
-    //
 })
 
 // Ctrl For Navigation
 app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, infoGrab, bookings, bookingGrab, bookings, email, $location, misc, stripeForm, cardDetails, currBooking, dashInstant, hackTools, $interval) {
+    //
+
     auth.intercept(function(response) {
+        $scope.views = views;
+        views.currentView = $route.current.action;
+        views.currentType = $route.current.type;
+        views = $scope.views;
         if(response.success == true) {
             // Grab appRoute.js Action Param
-            $scope.views = views;
-            views.currentView = $route.current.action;
-            views.currentType = $route.current.type;
-            views = $scope.views;
             $scope.bookings = bookings;
             $scope.misc = misc;
             $scope.stripeForm = stripeForm;
@@ -442,13 +474,13 @@ app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, in
             $scope.dashInstant = dashInstant;
             $scope.hackTools = hackTools;
 
-            if(response.message !== 'authenticated' && views.currentType == 'dash') {
+            /*if(response.message !== 'authenticated' && views.currentType == 'dash') {
                 $location.path('/login');
             } else {
                 $scope.user = user;
                 $scope.email = email;
                 $scope.isCardAdded = '';
-            }
+            }*/
 
             $scope.cancelJob = function(jobPK) {
                 $scope.hackTools.fixModalScroll('md-default');
@@ -524,7 +556,10 @@ app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, in
             };
             refresh();*/
 
-            $scope.displayProfile = infoGrab.displayOneRecord(null, "User");
+            $scope.displayProfile = function() {
+                infoGrab.displayOneRecord(null, "User");
+            }
+
 
             $scope.displayBooking = bookingGrab.displayAllRecords(null, "Quote", function(resp){
                 if(resp.success == true) {
@@ -561,8 +596,10 @@ app.controller('NaviCtrl', function($scope, views, $route, auth, $http, user, in
                 }
             });
         } else {
-            // No user exist
-            $location.path('/login');
+            // IF viewstype is dash or admin
+            if(views.currentType == 'dash' || views.currentType == 'admin') {
+                $location.path('/login');
+            }
         }
     });
 })

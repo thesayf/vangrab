@@ -120,13 +120,19 @@ module.exports = function(app, Quote, Token, User, Contact, needle, rest, Driver
             pp.getUserID(req.cookies["remember_me"], function(userID){
                 excludedFields = {password:0, accessToken:0, stripeID:0, pk:0, refreshToken:0, cardID:0};
                 User.findOne({_id: userID}, excludedFields, function(err, record){
-                    //console.log(record);
-                    res.json({
-                        success:true,
-                        message: "found",
-                        status: 1,
-                        data:record
-    			    })
+                    if(err) {
+                        res.json({
+                            success:false
+        			    })
+                    } else {
+                        //console.log(record);
+                        res.json({
+                            success:true,
+                            message: "found",
+                            status: 1,
+                            data:record
+        			    })
+                    }
                 })
             });
         } else {

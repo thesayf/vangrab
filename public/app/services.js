@@ -359,7 +359,7 @@ app.service('infoGrab', function($http, user){
      infoGrab.displayOneRecord = function(id, colName) {
 
          $http.post('/api/grab-one-record', {"id":id, "colName":colName}).success(function(response) {
-             if(response.data) {
+             if(response.success == true) {
                  user.firstname = response.data.firstname;
                  user.username = response.data.username;
                  user.mobile = response.data.mobile;
@@ -367,7 +367,8 @@ app.service('infoGrab', function($http, user){
                  if(user.cardAdded == '') {user.cardAdded = 'none'} else {
                      user.cardAdded = response.data.cardAdded;
                  }
-
+             } else {
+                 toastr.error('Profile not found.');
              }
         });
     };
